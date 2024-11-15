@@ -2,14 +2,13 @@
 
 This is a demo repo using OVM contracts lib to calculate Pi onchain.
 
-`./src` is the main entry for the contract code.
-
 
 ## Usage
 
 ### Build
 
 ```shell
+$ npm install
 $ forge build
 ```
 
