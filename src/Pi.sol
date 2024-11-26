@@ -13,13 +13,13 @@ contract Pi is OVMClient {
 
     /**
      * @dev Constructor function for the PI contract.
-     * @param OVMTaskAddress The address of the OVMTask contract.
+     * @param OVMGatewayAddress The address of the OVMTask contract.
      * @param admin The address of the admin.
      */
     constructor(
-        address OVMTaskAddress,
+        address OVMGatewayAddress,
         address admin
-    ) OVMClient(OVMTaskAddress, admin) {
+    ) OVMClient(OVMGatewayAddress, admin) {
         // set specification
         Specification memory spec;
         spec.name = "ovm-cal-pi";
@@ -72,7 +72,7 @@ contract Pi is OVMClient {
     function setResponse(
         bytes32 requestId,
         bytes calldata data
-    ) external override recordResponse(requestId) onlyOVMTask {
+    ) external override recordResponse(requestId) onlyOVMGateway {
         // parse and save the data fulfilled by the OVMTasks contract
         (bool success, string memory strPI) = _parseData(data);
         if (success) {
