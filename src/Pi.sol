@@ -10,19 +10,18 @@ import {
     Specification
 } from "@webisopen/ovm-contracts/src/libraries/DataTypes.sol";
 
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
 event ResponseParsed(bytes32 requestId, bool success, string strPI);
 
-contract Pi is OVMClient {
+contract Pi is OVMClient, OwnableUpgradeable {
     bool public constant REQ_DETERMINISTIC = true;
 
     mapping(bytes32 requestId => string _strPI) internal _responseData;
 
-    /**
-     * @dev Constructor function for the PI contract.
-     * @param OVMGatewayAddress The address of the OVMGateway contract.
-     * @param admin The address of the admin.
-     */
-    constructor(address OVMGatewayAddress, address admin) OVMClient(OVMGatewayAddress, admin) {
+    function initialize(address admin) external initializer {
+        __Ownable_init(admin);
+
         // set specification
         Specification memory spec;
         spec.name = "ovm-cal-pi";
@@ -87,6 +86,22 @@ contract Pi is OVMClient {
      */
     function getResponse(bytes32 requestId) external view returns (string memory) {
         return _responseData[requestId];
+    }
+
+    /**
+     * @dev Updates the specification of the OVM task.
+     * @param spec The new specification to be set.
+     */
+    function updateSpecification(Specification memory spec) external onlyOwner {
+        _updateSpecification(spec);
+    }
+
+    /**
+     * @dev Updates the address of the OVMGateway contract.
+     * @param OVMGatewayAddress The new address of the OVMGateway contract.
+     */
+    function updateOVMGateway(address OVMGatewayAddress) external onlyOwner {
+        _updateOVMGatewayAddress(OVMGatewayAddress);
     }
 
     /**

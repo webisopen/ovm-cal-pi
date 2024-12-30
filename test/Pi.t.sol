@@ -9,7 +9,12 @@ contract PiTest is Test {
     Pi public pi;
 
     function setUp() public {
-        pi = new Pi(mockTask, alice);
+        pi = new Pi();
+
+        pi.initialize(alice);
+
+        vm.prank(alice);
+        pi.updateOVMGateway(address(mockTask));
     }
 
     function testSetResponse() public {
