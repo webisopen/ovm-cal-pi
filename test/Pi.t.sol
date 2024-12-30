@@ -27,4 +27,21 @@ contract PiTest is Test {
         string memory strPI = pi.getResponse("0x1234");
         vm.assertEq(strPI, "3.14159");
     }
+
+    function testWithdraw() public {
+        // Fund the contract
+        vm.deal(address(pi), 1 ether);
+
+        // Ensure only owner can withdraw
+        vm.expectRevert();
+        pi.withdraw();
+
+        // Check withdrawal by owner
+        uint256 aliceBalanceBefore = alice.balance;
+        vm.prank(alice);
+        pi.withdraw();
+
+        assertEq(address(pi).balance, 0);
+        assertEq(alice.balance, aliceBalanceBefore + 1 ether);
+    }
 }

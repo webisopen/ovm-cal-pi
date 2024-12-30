@@ -79,6 +79,10 @@ contract Pi is OVMClient, OwnableUpgradeable {
         emit ResponseParsed(requestId, success, strPI);
     }
 
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
     /**
      * @dev Retrieves the response associated with the given request ID.
      * @param requestId The ID of the request.
