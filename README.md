@@ -3,7 +3,10 @@
 This is a demo repo using OVM contracts lib to calculate Pi onchain.
 
 
+
 ## Usage
+
+The `main` branch is using `forge install` to manage the dependencies. If you prefer using `npm`, check the branch [`npm`](https://github.com/webisopen/ovm-cal-pi/tree/npm).
 
 ### Build
 

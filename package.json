@@ -1,6 +1,13 @@
 {
   "dependencies": {
-    "@webisopen/ovm-contracts": "^1.4.0",
-    "@openzeppelin/contracts": "^5.0.2"
+    "@webisopen/ovm-contracts": "^1.6.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.1.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "husky"
   }
 }

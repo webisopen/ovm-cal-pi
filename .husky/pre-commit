@@ -1,0 +1,6 @@
+forge fmt
+
+forge build
+forge test
+
+git add -u

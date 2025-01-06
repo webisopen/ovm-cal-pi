@@ -38,8 +38,15 @@ contract Deploy is Deployer {
     /* solhint-disable comprehensive-interface */
     function run() external {
         deployImplementations();
-
         deployProxies();
+        initializePi();
+    }
+
+    function initializePi() public broadcast {
+        Pi pi = Pi(mustGetAddress("PiProxy"));
+
+        console.log("Initializing Pi at %s", address(pi));
+        pi.initialize(_cfg.templateAdmin());
     }
 
     /// @notice Deploy all of the proxies
@@ -69,7 +76,8 @@ contract Deploy is Deployer {
 
     function deployPi() public returns (address addr) {
         console.log("Deploying Pi.sol");
-        Pi pi = new Pi(_cfg.ovmTaskAddress(), _cfg.templateAdmin());
+        Pi pi = new Pi();
+        pi.initialize(_cfg.templateAdmin());
 
         save("Pi", address(pi));
         console.log("Pi deployed at %s", address(pi));
