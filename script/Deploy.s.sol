@@ -42,7 +42,7 @@ contract Deploy is Deployer {
         initializePi();
     }
 
-    function initializePi() public {
+    function initializePi() public broadcast {
         Pi pi = Pi(mustGetAddress("PiProxy"));
 
         console.log("Initializing Pi at %s", address(pi));
