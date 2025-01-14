@@ -19,8 +19,8 @@ contract Pi is OVMClient, OwnableUpgradeable {
 
     mapping(bytes32 requestId => string _strPI) internal _responseData;
 
-    function initialize(address admin) external initializer {
-        __Ownable_init(admin);
+    function initialize(address owner) external initializer {
+        __Ownable_init(owner);
 
         // set specification
         Specification memory spec;
