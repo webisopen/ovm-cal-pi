@@ -4,3 +4,6 @@
 [submodule "lib/ovm-contracts"]
 	path = lib/ovm-contracts
 	url = https://github.com/webisopen/ovm-contracts
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
