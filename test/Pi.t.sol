@@ -1,47 +1,35 @@
 pragma solidity 0.8.24;
 
-import {Pi, ResponseParsed} from "../src/Pi.sol";
-import {Test} from "forge-std/Test.sol";
+import {Pi} from "../src/tasks/Pi.sol";
+import {SeqAligner} from "../src/tasks/SeqAligner.sol";
+import {OVMTaskTest} from "./OVMTask.t.sol";
 
-contract PiTest is Test {
-    address public constant alice = address(0x1111);
-    address public constant mockTask = address(0x1234abcd);
-    Pi public pi;
+contract PiTest is OVMTaskTest {
+    Pi public piTask;
+    SeqAligner public seqAligner;
 
-    function setUp() public {
-        pi = new Pi();
+    function setUp() public override {
+        piTask = new Pi();
+        piTask.initialize(OWNER);
 
-        pi.initialize(alice);
+        vm.prank(OWNER);
+        piTask.updateOVMGateway(MOCK_GATEWAY);
 
-        vm.prank(alice);
-        pi.updateOVMGateway(address(mockTask));
+        seqAligner = new SeqAligner();
+        seqAligner.initialize(OWNER);
+
+        vm.prank(OWNER);
+        seqAligner.updateOVMGateway(MOCK_GATEWAY);
     }
 
-    function testSetResponse() public {
-        bytes memory mockData = abi.encode(true, "3.14159");
-        vm.prank(mockTask);
-        vm.expectEmit();
-        emit ResponseParsed("0x1234", true, "3.14159");
-        pi.setResponse("0x1234", mockData);
+    // test specification set in initialize
+    function testInitialSpecification() public {
+        assertEq(piTask.getSpecification().name, "ovm-cal-pi");
+        assertEq(piTask.getSpecification().version, "1.0.0");
+        assertEq(piTask.getSpecification().description, "Calculate PI");
 
-        string memory strPI = pi.getResponse("0x1234");
-        vm.assertEq(strPI, "3.14159");
-    }
-
-    function testWithdraw() public {
-        // Fund the contract
-        vm.deal(address(pi), 1 ether);
-
-        // Ensure only owner can withdraw
-        vm.expectRevert();
-        pi.withdraw();
-
-        // Check withdrawal by owner
-        uint256 aliceBalanceBefore = alice.balance;
-        vm.prank(alice);
-        pi.withdraw();
-
-        assertEq(address(pi).balance, 0);
-        assertEq(alice.balance, aliceBalanceBefore + 1 ether);
+        assertEq(seqAligner.getSpecification().name, "sequence-aligner");
+        assertEq(seqAligner.getSpecification().version, "1.0.0");
+        assertEq(seqAligner.getSpecification().description, "Sequence Aligner");
     }
 }
