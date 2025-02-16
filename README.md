@@ -30,11 +30,11 @@ $ forge fmt
 ```shell
 # Quick create new task
 # It will create a new task contract under src/tasks/
-node ./scripts/create-task.js ./examples/task-specs/example-task.json
+node ./commands/create-task.js ./examples/task-specs/example-task.json
 
 # With verification
 # Update .env file with your own values. Specify the tasks to deploy in DEPLOY_TASKS.
-./deploy-and-verify.sh
+./commands/deploy-and-verify.sh
 
 # generate easily readable abi to /deployments
 forge script script/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $RPC_URL --broadcast --ffi
