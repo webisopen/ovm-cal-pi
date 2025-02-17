@@ -1,0 +1,23 @@
+{
+  "contractName": "ExampleTask",
+  "sendRequestInputType": "StringString",
+  "specification": {
+    "name": "example-task",
+    "version": "1.0.0",
+    "description": "Example Task Description",
+    "repository": "https://github.com/example/repo",
+    "repoTag": "v1.0.0",
+    "license": "WTFPL",
+    "requirement": {
+      "ram": "256mb",
+      "disk": "5mb",
+      "timeout": 600,
+      "cpu": 1,
+      "gpu": 0,
+      "gpuModel": "T4"
+    },
+    "royalty": 5,
+    "execMode": "JIT",
+    "arch": "AMD64"
+  }
+} 

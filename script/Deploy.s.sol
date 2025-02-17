@@ -2,7 +2,8 @@
 // solhint-disable no-console,ordering,custom-errors
 pragma solidity 0.8.24;
 
-import {Pi} from "../src/Pi.sol";
+import {Pi} from "../src/tasks/Pi.sol";
+import {SeqAligner} from "../src/tasks/SeqAligner.sol";
 import {DeployConfig} from "./DeployConfig.s.sol";
 import {Deployer} from "./Deployer.sol";
 import {TransparentUpgradeableProxy} from
@@ -11,6 +12,8 @@ import {console} from "forge-std/console.sol";
 
 contract Deploy is Deployer {
     DeployConfig internal _cfg;
+    string[] private tasksToDeployArray;
+    bool private useProxy;
 
     /// @notice Modifier that wraps a function in broadcasting.
     modifier broadcast() {
@@ -31,27 +34,32 @@ contract Deploy is Deployer {
             string.concat(vm.projectRoot(), "/deploy-config/", deploymentContext, ".json");
         _cfg = new DeployConfig(path);
 
+        // Get tasks to deploy from environment variable, default to "Pi"
+        string memory tasksArg = vm.envOr("DEPLOY_TASKS", string("Pi"));
+        tasksToDeployArray = _split(tasksArg, ",");
+
+        // Determine whether to use proxy from environment variable, default to true
+        useProxy = vm.envOr("USE_PROXY", true);
+
         console.log("Deploying from %s", deployScript);
         console.log("Deployment context: %s", deploymentContext);
+        console.log("Tasks to deploy: %s", tasksArg);
+        console.log("Using proxy: %s", useProxy ? "true" : "false");
     }
 
-    /* solhint-disable comprehensive-interface */
     function run() external {
         deployImplementations();
-        deployProxies();
-        initializePi();
-    }
-
-    function initializePi() public broadcast {
-        Pi pi = Pi(mustGetAddress("PiProxy"));
-
-        console.log("Initializing Pi at %s", address(pi));
-        pi.initialize(_cfg.templateAdmin());
+        if (useProxy) {
+            deployProxies();
+            initializeTasks();
+        }
     }
 
     /// @notice Deploy all of the proxies
     function deployProxies() public {
-        deployProxy("Pi");
+        for (uint256 i = 0; i < tasksToDeployArray.length; i++) {
+            deployProxy(tasksToDeployArray[i]);
+        }
     }
 
     function deployProxy(string memory name_) public broadcast returns (address addr_) {
@@ -71,16 +79,86 @@ contract Deploy is Deployer {
 
     /// @notice Deploy all of the logic contracts
     function deployImplementations() public broadcast {
-        deployPi();
+        for (uint256 i = 0; i < tasksToDeployArray.length; i++) {
+            string memory taskName = tasksToDeployArray[i];
+            console.log("Deploying %s.sol", taskName);
+
+            address implementation = _deployImplementation(taskName);
+            save(taskName, implementation);
+            console.log("%s deployed at %s", taskName, implementation);
+        }
     }
 
-    function deployPi() public returns (address addr) {
-        console.log("Deploying Pi.sol");
-        Pi pi = new Pi();
-        pi.initialize(_cfg.templateAdmin());
+    function initializeTasks() public broadcast {
+        for (uint256 i = 0; i < tasksToDeployArray.length; i++) {
+            string memory taskName = string.concat(tasksToDeployArray[i], "Proxy");
+            address proxyAddr = mustGetAddress(taskName);
 
-        save("Pi", address(pi));
-        console.log("Pi deployed at %s", address(pi));
-        addr = address(pi);
+            console.log("Initializing %s at %s", taskName, proxyAddr);
+            if (_strEqual(tasksToDeployArray[i], "Pi")) {
+                Pi(proxyAddr).initialize(_cfg.templateAdmin());
+            } else if (_strEqual(tasksToDeployArray[i], "SeqAligner")) {
+                SeqAligner(proxyAddr).initialize(_cfg.templateAdmin());
+            }
+        }
+    }
+
+    function _deployImplementation(string memory taskName) internal returns (address) {
+        if (_strEqual(taskName, "Pi")) {
+            Pi implementation = new Pi();
+            return address(implementation);
+        } else if (_strEqual(taskName, "SeqAligner")) {
+            SeqAligner implementation = new SeqAligner();
+            return address(implementation);
+        }
+        revert(string.concat("Unknown task: ", taskName));
+    }
+
+    function _split(string memory str, string memory delimiter)
+        internal
+        pure
+        returns (string[] memory)
+    {
+        bytes memory strBytes = bytes(str);
+        bytes memory delimiterBytes = bytes(delimiter);
+
+        uint256 count = 1;
+        for (uint256 i = 0; i < strBytes.length; i++) {
+            if (strBytes[i] == delimiterBytes[0]) {
+                count++;
+            }
+        }
+
+        string[] memory parts = new string[](count);
+        uint256 partIndex = 0;
+        uint256 start = 0;
+
+        for (uint256 i = 0; i < strBytes.length; i++) {
+            if (strBytes[i] == delimiterBytes[0]) {
+                parts[partIndex] = _substring(str, start, i);
+                partIndex++;
+                start = i + 1;
+            }
+        }
+        parts[partIndex] = _substring(str, start, strBytes.length);
+
+        return parts;
+    }
+
+    function _substring(string memory str, uint256 startIndex, uint256 endIndex)
+        internal
+        pure
+        returns (string memory)
+    {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+        return string(result);
+    }
+
+    function _strEqual(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(bytes(a)) == keccak256(bytes(b));
     }
 }
